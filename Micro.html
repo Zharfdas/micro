@@ -1,0 +1,1713 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Virtual Lab — Streak Plate</title>
+  <style>
+    :root{
+      --blue:#29407C;
+      --green:#0b7a3c;
+      --green2:#16904b;
+      --text:#1c2736;
+      --muted:#627386;
+      --agar:#c7c195;
+      --agar2:#b4ae7f;
+      --bg:#eef3f8;
+      --warn:#b95a00;
+      --ok:#0b7a3c;
+      --danger:#d54a3c;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: Arial, Helvetica, sans-serif;
+      background:linear-gradient(135deg,#103f2f,#1d644b);
+      color:var(--text);
+    }
+
+    .app{
+      width:min(1320px, calc(100vw - 24px));
+      margin:18px auto;
+      background:#fff;
+      border-radius:20px;
+      overflow:hidden;
+      box-shadow:0 22px 48px rgba(0,0,0,.3);
+    }
+
+    .topbar{
+      background:linear-gradient(90deg,var(--blue),#3f63b8);
+      color:#fff;
+      padding:20px 26px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:16px;
+      flex-wrap:wrap;
+    }
+
+    .topbar h1{
+      margin:0;
+      font-size:28px;
+    }
+
+    .topbar small{
+      display:block;
+      opacity:.9;
+      margin-top:4px;
+      font-size:14px;
+    }
+
+    .nav{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+
+    .nav button{
+      border:none;
+      border-radius:12px;
+      padding:10px 14px;
+      font-size:14px;
+      font-weight:700;
+      cursor:pointer;
+      background:rgba(255,255,255,.14);
+      color:#fff;
+    }
+
+    .nav button.active{
+      background:#fff;
+      color:#20314a;
+    }
+
+    .screen{
+      display:none;
+      padding:20px;
+      background:#f7f9fb;
+      min-height:780px;
+    }
+
+    .screen.active{
+      display:block;
+    }
+
+    .hero{
+      display:grid;
+      grid-template-columns:1.1fr .9fr;
+      gap:18px;
+    }
+
+    .card{
+      background:#fff;
+      border:1px solid #dee6ef;
+      border-radius:18px;
+      padding:18px;
+      box-shadow:0 4px 12px rgba(0,0,0,.04);
+    }
+
+    .title{
+      margin:0 0 10px;
+      font-size:30px;
+      color:#20314a;
+    }
+
+    .subtitle{
+      margin:0 0 14px;
+      color:#4e6074;
+      line-height:1.7;
+    }
+
+    .cta-row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:14px;
+    }
+
+    button{
+      border:none;
+      border-radius:12px;
+      padding:11px 16px;
+      font-size:14px;
+      font-weight:700;
+      cursor:pointer;
+      transition:.2s;
+    }
+
+    button:hover{transform:translateY(-1px)}
+
+    .btn-primary{
+      background:var(--green);
+      color:#fff;
+    }
+
+    .btn-secondary{
+      background:#e9eef5;
+      color:#223249;
+    }
+
+    .grid-2{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:18px;
+    }
+
+    .grid-3{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:18px;
+    }
+
+    .card h2, .card h3{
+      margin-top:0;
+      color:#20314a;
+    }
+
+    .list{
+      margin:0;
+      padding-left:20px;
+      line-height:1.8;
+    }
+
+    .badge{
+      display:inline-block;
+      padding:5px 10px;
+      border-radius:999px;
+      background:#eaf7ef;
+      color:var(--green);
+      font-size:12px;
+      font-weight:700;
+    }
+
+    .warn{color:var(--warn); font-weight:700;}
+    .ok{color:var(--ok); font-weight:700;}
+    .danger{color:var(--danger); font-weight:700;}
+
+    .sim-layout{
+      display:grid;
+      grid-template-columns:1fr 340px;
+      gap:18px;
+    }
+
+    .main{
+      background:#fff;
+      border:1px solid #d9e2ec;
+      border-radius:16px;
+      padding:16px;
+    }
+
+    .sidebar{
+      background:#fff;
+      border:1px solid #d9e2ec;
+      border-radius:16px;
+      padding:16px;
+    }
+
+    .desc{
+      margin:0 0 14px;
+      font-size:15px;
+      line-height:1.75;
+      color:#243246;
+    }
+
+    .toolbar{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+
+    .status{
+      min-height:138px;
+      font-size:14px;
+      line-height:1.65;
+      color:var(--text);
+    }
+
+    .steps{
+      margin:0;
+      padding-left:18px;
+      line-height:1.7;
+      font-size:14px;
+    }
+
+    .steps li{margin-bottom:6px}
+    .steps li.done{color:var(--green);font-weight:700}
+
+    .legend{
+      font-size:13px;
+      line-height:1.65;
+      color:#5b6a7c;
+    }
+
+    .sim-badge{
+      display:inline-block;
+      margin-top:8px;
+      padding:4px 9px;
+      border-radius:999px;
+      background:#eaf7ef;
+      color:var(--green);
+      font-size:12px;
+      font-weight:700;
+    }
+
+    .stage{
+      position:relative;
+      width:100%;
+      height:760px;
+      border-radius:18px;
+      overflow:hidden;
+      border:1px solid #ced7e1;
+      background:
+        radial-gradient(circle at 20% 18%, rgba(255,255,255,.05), transparent 18%),
+        radial-gradient(circle at 82% 20%, rgba(255,255,255,.04), transparent 18%),
+        linear-gradient(180deg,#8c8c8c 0%, #3c3c3c 45%, #181818 100%);
+    }
+
+    .table-gloss{
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      background:
+        linear-gradient(115deg, rgba(255,255,255,.04), transparent 22%),
+        linear-gradient(295deg, rgba(255,255,255,.03), transparent 18%);
+    }
+
+    .shadow-layer{
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      background:
+        radial-gradient(circle at 10% 64%, rgba(0,0,0,.13), transparent 16%),
+        radial-gradient(circle at 42% 58%, rgba(0,0,0,.18), transparent 24%),
+        radial-gradient(circle at 84% 58%, rgba(0,0,0,.14), transparent 16%);
+    }
+
+    .dish{
+      position:absolute;
+      border-radius:50%;
+      background:
+        radial-gradient(circle at 30% 25%, rgba(255,255,255,.22), transparent 18%),
+        radial-gradient(circle, var(--agar) 0%, var(--agar2) 100%);
+      border:5px solid #767676;
+      box-shadow:
+        0 16px 25px rgba(0,0,0,.22),
+        inset 0 0 12px rgba(255,255,255,.1);
+      overflow:hidden;
+    }
+
+    .dish::before{
+      content:"";
+      position:absolute;
+      inset:8px;
+      border-radius:50%;
+      border:2px solid rgba(255,255,255,.17);
+      pointer-events:none;
+    }
+
+    .dish.source{
+      left:38px;
+      top:330px;
+      width:180px;
+      height:180px;
+    }
+
+    .dish.main{
+      left:235px;
+      top:150px;
+      width:500px;
+      height:500px;
+    }
+
+    .dish.main .qv,
+    .dish.main .qh{
+      position:absolute;
+      background:rgba(193,101,79,.65);
+      z-index:1;
+    }
+
+    .dish.main .qv{
+      width:3px;
+      height:100%;
+      left:50%;
+      transform:translateX(-50%);
+    }
+
+    .dish.main .qh{
+      height:3px;
+      width:100%;
+      top:50%;
+      transform:translateY(-50%);
+    }
+
+    .quad-label{
+      position:absolute;
+      font-size:22px;
+      font-weight:700;
+      color:rgba(0,0,0,.28);
+      z-index:1;
+      pointer-events:none;
+    }
+
+    .q1lab{left:145px;top:105px}
+    .q2lab{right:145px;top:105px}
+    .q3lab{right:145px;bottom:105px}
+    .q4lab{left:145px;bottom:105px}
+
+    .lid{
+      position:absolute;
+      inset:-8px;
+      border-radius:50%;
+      background:
+        radial-gradient(circle at 32% 28%, rgba(255,255,255,.28), transparent 16%),
+        radial-gradient(circle, rgba(255,255,255,.16), rgba(255,255,255,.05));
+      border:4px solid rgba(255,255,255,.35);
+      box-shadow: inset 0 0 18px rgba(255,255,255,.08);
+      transform-origin: 30px 455px;
+      transition:transform .8s ease, opacity .8s ease;
+      z-index:8;
+      pointer-events:none;
+    }
+
+    .lid.open{
+      transform:rotate(-34deg) translate(-18px,-34px);
+      opacity:.92;
+    }
+
+    .source-sample{
+      position:absolute;
+      left:26px;
+      top:28px;
+      width:112px;
+      height:92px;
+      background:
+        linear-gradient(135deg, rgba(231,214,140,.92), rgba(210,190,110,.88));
+      clip-path: polygon(0 15%, 88% 0, 100% 32%, 25% 100%, 0 82%);
+      border-radius:18px;
+      box-shadow: inset 0 0 10px rgba(255,255,255,.15);
+    }
+
+    .source-label{
+      position:absolute;
+      left:0;
+      right:0;
+      bottom:18px;
+      text-align:center;
+      font-size:14px;
+      color:#3a3a3a;
+      font-weight:700;
+    }
+
+    .stroke-segment{
+      position:absolute;
+      height:5px;
+      border-radius:999px;
+      background:linear-gradient(90deg, rgba(108,120,88,.88), rgba(92,106,70,.72));
+      z-index:2;
+      pointer-events:none;
+      transform-origin:left center;
+      box-shadow:0 0 2px rgba(0,0,0,.12);
+    }
+
+    .growth-line{
+      position:absolute;
+      height:10px;
+      border-radius:999px;
+      background:
+        linear-gradient(90deg,
+          rgba(246,219,92,.98),
+          rgba(232,197,58,.98) 45%,
+          rgba(214,171,34,.95));
+      z-index:4;
+      pointer-events:none;
+      transform-origin:left center;
+      opacity:0;
+      filter: drop-shadow(0 0 4px rgba(237,201,64,.48));
+      transition:opacity .45s ease, transform .45s ease;
+    }
+
+    .colony{
+      position:absolute;
+      border-radius:50%;
+      background:
+        radial-gradient(circle at 35% 35%, rgba(255,245,190,.95), rgba(231,210,135,.95) 55%, rgba(190,165,88,.92) 100%);
+      box-shadow:
+        inset 0 1px 1px rgba(255,255,255,.35),
+        0 0 2px rgba(0,0,0,.12);
+      z-index:5;
+      opacity:0;
+      transform:scale(0.25);
+      transition:
+        opacity 0.45s ease,
+        transform 0.45s ease;
+    }
+
+    .burner{
+      position:absolute;
+      right:60px;
+      top:230px;
+      width:150px;
+      height:280px;
+      filter: drop-shadow(0 14px 18px rgba(0,0,0,.25));
+    }
+
+    .burner-base{
+      position:absolute;
+      bottom:0;
+      left:22px;
+      width:108px;
+      height:54px;
+      background:
+        radial-gradient(circle at 50% 35%, #efe8e1, #d5ccc6 70%);
+      border-radius:50%;
+      box-shadow: inset 0 0 10px rgba(0,0,0,.12);
+    }
+
+    .burner-tube{
+      position:absolute;
+      left:58px;
+      bottom:40px;
+      width:34px;
+      height:168px;
+      background:linear-gradient(180deg,#f0f0f0,#cfcfcf);
+      border-radius:14px;
+      box-shadow: inset -4px 0 6px rgba(0,0,0,.06);
+    }
+
+    .burner-head{
+      position:absolute;
+      left:49px;
+      top:18px;
+      width:52px;
+      height:38px;
+      background:linear-gradient(180deg,#c69073,#a8785f);
+      border-radius:12px;
+      box-shadow: inset -3px 0 6px rgba(0,0,0,.08);
+    }
+
+    .burner-hole{
+      position:absolute;
+      left:67px;
+      top:28px;
+      width:16px;
+      height:16px;
+      border-radius:50%;
+      background:#6f5548;
+      box-shadow: inset 0 0 5px rgba(0,0,0,.18);
+    }
+
+    .flame{
+      position:absolute;
+      left:63px;
+      top:-52px;
+      width:34px;
+      height:108px;
+      background:
+        radial-gradient(circle at 50% 18%, rgba(255,255,255,.98) 0 10%, rgba(255,255,255,0) 32%),
+        radial-gradient(ellipse at 50% 42%, rgba(120,180,255,.95) 0 28%, rgba(48,112,255,.75) 52%, rgba(0,0,0,0) 72%),
+        linear-gradient(180deg, rgba(170,215,255,.95) 0%, rgba(64,132,255,.95) 45%, rgba(38,88,255,.78) 75%, rgba(0,0,0,0) 100%);
+      border-radius: 50% 50% 42% 42%;
+      filter: blur(.4px);
+      box-shadow:
+        0 0 18px rgba(88,145,255,.95),
+        0 0 40px rgba(88,145,255,.45),
+        0 0 80px rgba(88,145,255,.22);
+      transform-origin:center bottom;
+      animation: flameFlicker 0.8s ease-in-out infinite;
+    }
+
+    .flame::before{
+      content:"";
+      position:absolute;
+      left:9px;
+      top:26px;
+      width:16px;
+      height:42px;
+      background:
+        radial-gradient(circle at 50% 10%, rgba(255,255,255,.95), rgba(255,255,255,0) 35%),
+        linear-gradient(180deg, rgba(228,243,255,.95), rgba(154,205,255,.82));
+      border-radius:50%;
+      filter: blur(.2px);
+      opacity:.95;
+    }
+
+    .flame::after{
+      content:"";
+      position:absolute;
+      left:-14px;
+      top:22px;
+      width:62px;
+      height:72px;
+      background:radial-gradient(circle, rgba(81,146,255,.24), rgba(81,146,255,0) 72%);
+      filter: blur(12px);
+    }
+
+    @keyframes flameFlicker{
+      0%,100%{transform: scaleX(1) scaleY(1) rotate(-1deg);}
+      25%{transform: scaleX(.94) scaleY(1.08) rotate(1deg);}
+      50%{transform: scaleX(1.04) scaleY(.96) rotate(-1.5deg);}
+      75%{transform: scaleX(.97) scaleY(1.06) rotate(.8deg);}
+    }
+
+    .rod{
+      position:absolute;
+      left:845px;
+      top:125px;
+      width:285px;
+      height:8px;
+      background:
+        linear-gradient(90deg,
+          #bfc4c9 0%,
+          #fdfdfd 18%,
+          #d8d8d8 38%,
+          #ffffff 55%,
+          #c9c9c9 74%,
+          #f3f3f3 100%);
+      border-radius:999px;
+      transform:rotate(-18deg);
+      transform-origin:right center;
+      box-shadow:
+        0 0 8px rgba(255,255,255,.18),
+        inset 0 -1px 2px rgba(0,0,0,.1),
+        inset 0 1px 1px rgba(255,255,255,.6);
+      cursor:grab;
+      z-index:25;
+      transition:left 0.03s linear, top 0.03s linear, transform 0.03s linear;
+    }
+
+    .rod.dragging{cursor:grabbing}
+
+    .rod::before{
+      content:"";
+      position:absolute;
+      left:-12px;
+      top:-1px;
+      width:26px;
+      height:10px;
+      background:linear-gradient(180deg,#eeeeee,#d7d7d7);
+      border-radius:6px;
+      box-shadow: inset 0 -1px 2px rgba(0,0,0,.08);
+    }
+
+    .loop{
+      position:absolute;
+      left:-31px;
+      top:-9px;
+      width:21px;
+      height:21px;
+      border:3px solid #f1f1f1;
+      border-radius:50%;
+      background:transparent;
+      box-shadow:
+        0 0 8px rgba(255,255,255,.24),
+        inset 0 -1px 2px rgba(0,0,0,.08);
+      transition:.25s;
+    }
+
+    .loop.hot{
+      border-color:#ff513c;
+      box-shadow:
+        0 0 16px rgba(255,81,60,.95),
+        0 0 34px rgba(255,120,90,.38),
+        inset 0 0 4px rgba(255,255,255,.18);
+    }
+
+    .loop.loaded{
+      background: radial-gradient(circle at 40% 40%, rgba(255,230,120,.95), rgba(214,180,70,.9));
+      box-shadow:
+        0 0 10px rgba(255,220,120,.45),
+        inset 0 0 4px rgba(255,255,255,.25);
+    }
+
+    .helper-dot{
+      position:absolute;
+      width:14px;
+      height:14px;
+      border:2px solid #111;
+      border-radius:50%;
+      display:none;
+      z-index:26;
+      pointer-events:none;
+      background:rgba(255,255,255,.12);
+      box-shadow:0 0 8px rgba(255,255,255,.2);
+    }
+
+    .incubator-screen{
+      position:absolute;
+      inset:0;
+      display:none;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(255,255,255,.04), transparent 18%),
+        linear-gradient(180deg,#8a8a8a 0%, #2b2b2b 55%, #111 100%);
+      z-index:40;
+    }
+
+    .incubator-screen.show{
+      display:block;
+    }
+
+    .incubator-info{
+      position:absolute;
+      left:40px;
+      top:90px;
+      color:#fff;
+      width:360px;
+    }
+
+    .inc-title{
+      font-size:22px;
+      font-weight:700;
+      margin-bottom:16px;
+    }
+
+    .inc-text{
+      font-size:18px;
+      line-height:1.6;
+    }
+
+    .inc-text span{
+      color:#40cfff;
+      font-weight:700;
+    }
+
+    .clock-wrap{
+      margin-top:26px;
+      display:flex;
+      align-items:center;
+      gap:18px;
+    }
+
+    .clock{
+      position:relative;
+      width:150px;
+      height:150px;
+      border-radius:50%;
+      background:#f6f6f1;
+      border:8px solid #bdbdb8;
+      box-shadow:0 8px 16px rgba(0,0,0,.22);
+    }
+
+    .clock::before{
+      content:"12";
+      position:absolute;
+      top:8px;
+      left:50%;
+      transform:translateX(-50%);
+      color:#555;
+      font-size:20px;
+    }
+
+    .clock::after{
+      content:"6";
+      position:absolute;
+      bottom:8px;
+      left:50%;
+      transform:translateX(-50%);
+      color:#555;
+      font-size:20px;
+    }
+
+    .clock-center{
+      position:absolute;
+      left:50%;
+      top:50%;
+      width:10px;
+      height:10px;
+      background:#222;
+      border-radius:50%;
+      transform:translate(-50%,-50%);
+      z-index:3;
+    }
+
+    .hand{
+      position:absolute;
+      left:50%;
+      top:50%;
+      transform-origin:bottom center;
+      transform:translateX(-50%) rotate(0deg);
+      border-radius:999px;
+    }
+
+    .hand.hour{
+      width:6px;
+      height:42px;
+      background:#2f2f2f;
+      margin-top:-42px;
+      z-index:2;
+    }
+
+    .hand.minute{
+      width:3px;
+      height:58px;
+      background:#d65f52;
+      margin-top:-58px;
+      z-index:2;
+    }
+
+    .time-label{
+      font-size:30px;
+      font-weight:700;
+      color:#fff;
+    }
+
+    .incubator-box{
+      position:absolute;
+      right:110px;
+      bottom:90px;
+      width:260px;
+      height:220px;
+      background:
+        linear-gradient(135deg,#fefefe,#e8e8e8 55%, #d8d8d8);
+      box-shadow:0 18px 26px rgba(0,0,0,.28);
+      transform:skewY(-8deg);
+    }
+
+    .incubator-box::before{
+      content:"";
+      position:absolute;
+      left:35px;
+      top:-38px;
+      width:240px;
+      height:42px;
+      background:linear-gradient(90deg,#fafafa,#dddddd);
+      transform:skewX(-45deg);
+      box-shadow:0 8px 12px rgba(0,0,0,.15);
+    }
+
+    .incubator-box::after{
+      content:"";
+      position:absolute;
+      left:-26px;
+      top:18px;
+      width:28px;
+      height:150px;
+      background:linear-gradient(180deg,#dcdcdc,#c6c6c6);
+      transform:skewY(45deg);
+    }
+
+    .question{
+      margin-bottom:18px;
+      padding:16px;
+      background:#fff;
+      border:1px solid #dde5ee;
+      border-radius:14px;
+    }
+
+    .question h3{
+      margin-top:0;
+    }
+
+    .answers{
+      display:grid;
+      gap:8px;
+      margin-top:10px;
+    }
+
+    .answers label{
+      background:#f7f9fb;
+      border:1px solid #dfe7f0;
+      padding:10px 12px;
+      border-radius:10px;
+      cursor:pointer;
+      display:block;
+    }
+
+    .test-result{
+      font-size:18px;
+      font-weight:700;
+      margin-top:16px;
+    }
+
+    @media (max-width: 1180px){
+      .app{width:100%; margin:0; border-radius:0}
+      .body, .hero, .grid-2, .grid-3, .sim-layout{grid-template-columns:1fr}
+      .screen{min-height:auto}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div>
+        <h1>Virtual Interactive Bacteriology Laboratory</h1>
+        <small>Штриховой посев / Streak Plate</small>
+      </div>
+      <div class="nav">
+        <button class="active" onclick="showScreen('home', this)">Главный экран</button>
+        <button onclick="showScreen('theory', this)">Теория</button>
+        <button onclick="showScreen('safety', this)">Инструменты и biosafety</button>
+        <button onclick="showScreen('simulation', this)">Игра / Simulation</button>
+        <button onclick="showScreen('test', this)">Тест</button>
+      </div>
+    </div>
+
+    <!-- Главный экран -->
+    <section class="screen active" id="home">
+      <div class="hero">
+        <div class="card">
+          <h2 class="title">Streak Plate Virtual Lab</h2>
+          <p class="subtitle">
+            Это интерактивный виртуальный лабораторный проект по микробиологии. Здесь студент проходит полный цикл:
+            теория, реактивы, правила безопасности, симуляция штрихового посева, инкубация и итоговый тест.
+          </p>
+          <div class="grid-2">
+            <div class="card">
+              <h3>Что есть в проекте</h3>
+              <ul class="list">
+                <li>Теоретический раздел</li>
+                <li>Инструменты и реактивы</li>
+                <li>Biosafety</li>
+                <li>1 полноценная simulation</li>
+                <li>Интерактивные действия пользователя</li>
+                <li>Итоговый тест</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>Цель</h3>
+              <p class="subtitle" style="margin:0">
+                Показать метод последовательного механического разведения микроорганизмов на агаре, в результате которого получают отдельные колонии и выделяют чистую культуру.
+              </p>
+            </div>
+          </div>
+          <div class="cta-row">
+            <button class="btn-primary" onclick="showScreen('simulation'); setActiveNav(3)">Перейти в игру</button>
+            <button class="btn-secondary" onclick="showScreen('theory'); setActiveNav(1)">Сначала теория</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Какие критерии закрывает проект</h2>
+          <ul class="list">
+            <li><span class="badge">Теоретический раздел</span></li>
+            <li><span class="badge">Лабораторные этапы</span></li>
+            <li><span class="badge">Реактивы и инструменты</span></li>
+            <li><span class="badge">Biosafety</span></li>
+            <li><span class="badge">Интерактивность</span></li>
+            <li><span class="badge">1 simulation</span></li>
+            <li><span class="badge">3 тестовых вопроса</span></li>
+          </ul>
+          <p class="subtitle" style="margin-top:14px">
+            Проект собран под условия конкурса: теория, этапы опыта, интерактивные действия, предупреждения при ошибке, визуализация и итоговый тест.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Теория -->
+    <section class="screen" id="theory">
+      <div class="grid-2">
+        <div class="card">
+          <h2>Теоретический раздел</h2>
+          <p class="subtitle">
+            Штриховой посев (Streak Plate) — это микробиологический метод выделения чистой культуры бактерий на плотной питательной среде.
+            Метод основан на последовательном механическом разведении клеток по поверхности агара с помощью бактериологической петли.
+          </p>
+          <p class="subtitle">
+            Основная цель метода — получение изолированных колоний, пригодных для дальнейшей идентификации микроорганизмов,
+            изучения морфологии и проведения биохимических тестов.
+          </p>
+        </div>
+        <div class="card">
+          <h2>Цель и применение</h2>
+          <ul class="list">
+            <li>Выделение чистой культуры бактерий</li>
+            <li>Получение изолированных колоний</li>
+            <li>Первичная лабораторная диагностика</li>
+            <li>Подготовка материала для дальнейших тестов</li>
+            <li>Обучение студентов базовым микробиологическим навыкам</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h2>Техника выполнения</h2>
+        <ol class="list">
+          <li>Стерилизация петли — петлю нагревают в пламени и охлаждают.</li>
+          <li>Взятие материала — небольшое количество материала берут из исходной чашки.</li>
+          <li>Первый штрих (I зона) — выполняют плотный посев.</li>
+          <li>Повторная стерилизация — петлю снова стерилизуют.</li>
+          <li>Второй штрих (II зона) — небольшое количество материала переносят из I зоны во II.</li>
+          <li>Третья и IV зоны — каждый раз после стерилизации переносят ещё меньше материала из предыдущей зоны.</li>
+          <li>Инкубация — чашку помещают в инкубатор при 37°C на 24 часа.</li>
+          <li>Результат — после инкубации формируются изолированные колонии.</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- Инструменты и biosafety -->
+    <section class="screen" id="safety">
+      <div class="grid-3">
+        <div class="card">
+          <h2>Инструменты</h2>
+          <ul class="list">
+            <li>Чашка Петри с плотной питательной средой</li>
+            <li>Исходная чашка с материалом</li>
+            <li>Бактериологическая петля</li>
+            <li>Газовая горелка</li>
+            <li>Инкубатор</li>
+            <li>Маркер для деления чашки на зоны</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h2>Реактивы и материалы</h2>
+          <ul class="list">
+            <li>Плотный агар</li>
+            <li>Исследуемый биоматериал</li>
+            <li>Чистая рабочая поверхность</li>
+            <li>Дезинфицирующие средства</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h2>Правила безопасности (Biosafety)</h2>
+          <ul class="list">
+            <li>Работать в перчатках и халате</li>
+            <li>Стерилизовать петлю до и после использования</li>
+            <li>Не держать чашку открытой слишком долго</li>
+            <li>Не касаться агара руками</li>
+            <li>После завершения утилизировать материалы по правилам биобезопасности</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h2>Что делает студент в интерактиве</h2>
+        <ul class="list">
+          <li>Открывает чашку</li>
+          <li>Выбирает этап: стерилизация / взятие материала / посев</li>
+          <li>Выполняет опыт как пользователь</li>
+          <li>При ошибке получает предупреждение</li>
+          <li>Видит результат только после правильной инкубации</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Simulation -->
+    <section class="screen" id="simulation">
+      <div class="sim-layout">
+        <div class="main">
+          <h2 class="title" style="font-size:26px">Streak Plate — Игра / Simulation</h2>
+          <p class="desc">
+            Правильная логика: стерилизация петли → взятие материала из исходной чашки → длинный плотный штриховой посев в I зоне →
+            перенос штрихов из I во II → затем из II в III → затем из III в IV, каждый раз с постепенным уменьшением количества материала →
+            инкубация при 37°C / 24 часа → рост по линиям посева: в I–III зонах выраженные жёлтые набухшие линии, в IV зоне — отдельные гранулы.
+          </p>
+
+          <div class="toolbar">
+            <button class="btn-primary" onclick="openDish()">Открыть основную чашку</button>
+            <button class="btn-secondary" onclick="resetGame()">Сброс</button>
+          </div>
+
+          <div class="stage" id="stage">
+            <div class="table-gloss"></div>
+            <div class="shadow-layer"></div>
+
+            <div class="dish source" id="sourceDish">
+              <div class="source-sample"></div>
+              <div class="source-label">Исходный материал</div>
+            </div>
+
+            <div class="dish main" id="dishMain">
+              <div class="qv"></div>
+              <div class="qh"></div>
+              <div class="quad-label q1lab">I</div>
+              <div class="quad-label q2lab">II</div>
+              <div class="quad-label q3lab">III</div>
+              <div class="quad-label q4lab">IV</div>
+              <div class="lid" id="lid"></div>
+            </div>
+
+            <div class="burner" id="burner">
+              <div class="flame"></div>
+              <div class="burner-head"></div>
+              <div class="burner-hole"></div>
+              <div class="burner-tube"></div>
+              <div class="burner-base"></div>
+            </div>
+
+            <div class="rod" id="rod">
+              <div class="loop" id="loop"></div>
+            </div>
+
+            <div class="helper-dot" id="helperDot"></div>
+
+            <div class="incubator-screen" id="incubatorScreen">
+              <div class="incubator-box"></div>
+
+              <div class="incubator-info">
+                <div class="inc-title">Инкубация</div>
+                <div class="inc-text">
+                  Помещаем чашку в инкубатор при температуре <span>37°C</span>.<br>
+                  Ожидаем 24 часа, затем оцениваем результат.
+                </div>
+
+                <div class="clock-wrap">
+                  <div class="clock">
+                    <div class="clock-center"></div>
+                    <div class="hand hour" id="hourHand"></div>
+                    <div class="hand minute" id="minuteHand"></div>
+                  </div>
+                  <div class="time-label" id="timeLabel">00:00</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar">
+          <div class="card">
+            <h3>Состояние</h3>
+            <div class="status" id="status">
+              1) Откройте основную чашку.<br>
+              2) Сначала стерилизуйте петлю.<br>
+              3) Затем возьмите материал из исходной чашки.<br>
+              4) Выполните посев в I зоне.
+            </div>
+            <div class="sim-badge" id="badge">Текущая зона: I</div>
+          </div>
+
+          <div class="card">
+            <h3>Этапы опыта</h3>
+            <ol class="steps">
+              <li id="s1">Открыть основную чашку</li>
+              <li id="s2">Стерилизовать петлю</li>
+              <li id="s3">Взять материал из исходной чашки</li>
+              <li id="s4">Первый штрих — I зона</li>
+              <li id="s5">Повторная стерилизация</li>
+              <li id="s6">Второй штрих — II зона</li>
+              <li id="s7">Повторная стерилизация</li>
+              <li id="s8">Третий штрих — III зона</li>
+              <li id="s9">Повторная стерилизация</li>
+              <li id="s10">Четвёртый штрих — IV зона</li>
+              <li id="s11">Инкубация</li>
+              <li id="s12">Итог: колонии</li>
+            </ol>
+          </div>
+
+          <div class="card">
+            <h3>Подсказка</h3>
+            <div class="legend">
+              Во II, III и IV зоны материал не берут снова из исходной чашки. Штрихи продолжают друг за другом: I → II → III → IV. В IV зоне ожидаются отдельные гранулы, из которых затем можно приготовить мазок и посмотреть под микроскопом.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Тест -->
+    <section class="screen" id="test">
+      <div class="card">
+        <h2>Итоговый тест</h2>
+        <p class="subtitle">Ответьте на вопросы после изучения теории и прохождения simulation.</p>
+      </div>
+
+      <div class="question">
+        <h3>1. Для чего используется метод штрихового посева?</h3>
+        <div class="answers">
+          <label><input type="radio" name="q1" value="0"> Для окраски бактерий</label>
+          <label><input type="radio" name="q1" value="1"> Для выделения чистой культуры</label>
+          <label><input type="radio" name="q1" value="0"> Для определения вирусов</label>
+        </div>
+      </div>
+
+      <div class="question">
+        <h3>2. Зачем стерилизуют бактериологическую петлю?</h3>
+        <div class="answers">
+          <label><input type="radio" name="q2" value="0"> Для охлаждения агара</label>
+          <label><input type="radio" name="q2" value="1"> Для предотвращения контаминации</label>
+          <label><input type="radio" name="q2" value="0"> Для ускорения роста бактерий</label>
+        </div>
+      </div>
+
+      <div class="question">
+        <h3>3. При какой температуре обычно проводится инкубация в этой модели?</h3>
+        <div class="answers">
+          <label><input type="radio" name="q3" value="0"> 20°C</label>
+          <label><input type="radio" name="q3" value="0"> 25°C</label>
+          <label><input type="radio" name="q3" value="1"> 37°C</label>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="checkTest()">Проверить тест</button>
+      <div class="test-result" id="testResult"></div>
+    </section>
+  </div>
+
+  <script>
+    function showScreen(id, btn){
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      if (btn) {
+        document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+    }
+
+    function setActiveNav(index){
+      const navs = document.querySelectorAll('.nav button');
+      navs.forEach(b => b.classList.remove('active'));
+      if (navs[index]) navs[index].classList.add('active');
+    }
+
+    function checkTest(){
+      let score = 0;
+      ['q1','q2','q3'].forEach(q => {
+        const checked = document.querySelector(`input[name="${q}"]:checked`);
+        if (checked) score += Number(checked.value);
+      });
+
+      const result = document.getElementById('testResult');
+      if (score === 3) {
+        result.innerHTML = 'Результат: 3/3 — <span class="ok">отлично</span>';
+      } else if (score === 2) {
+        result.innerHTML = 'Результат: 2/3 — <span class="warn">хорошо, но можно лучше</span>';
+      } else {
+        result.innerHTML = 'Результат: ' + score + '/3 — <span class="danger">повторите теорию и simulation</span>';
+      }
+    }
+
+    const dishMain = document.getElementById('dishMain');
+    const lid = document.getElementById('lid');
+    const burner = document.getElementById('burner');
+    const rod = document.getElementById('rod');
+    const loop = document.getElementById('loop');
+    const stage = document.getElementById('stage');
+    const helperDot = document.getElementById('helperDot');
+    const statusBox = document.getElementById('status');
+    const badge = document.getElementById('badge');
+    const sourceDish = document.getElementById('sourceDish');
+
+    const incubatorScreen = document.getElementById('incubatorScreen');
+    const hourHand = document.getElementById('hourHand');
+    const minuteHand = document.getElementById('minuteHand');
+    const timeLabel = document.getElementById('timeLabel');
+
+    let dishOpened = false;
+    let sterilized = false;
+    let initialSampleTaken = false;
+    let transferReady = false;
+    let dragging = false;
+    let drawing = false;
+    let offsetX = 0;
+    let offsetY = 0;
+    let activeQuadrant = 1;
+    let strokeCount = {1:0,2:0,3:0,4:0};
+    let completed = {1:false,2:false,3:false,4:false};
+    let lastPoint = null;
+    let strokePaths = {1:[],2:[],3:[],4:[]};
+
+    function mark(id){
+      const el = document.getElementById(id);
+      if(el) el.classList.add('done');
+    }
+
+    function zoneLabel(n){
+      if(n === 1) return 'I';
+      if(n === 2) return 'II';
+      if(n === 3) return 'III';
+      if(n === 4) return 'IV';
+      return '';
+    }
+
+    function setStatus(html){
+      statusBox.innerHTML = html;
+      badge.textContent = activeQuadrant <= 4 ? `Текущая зона: ${zoneLabel(activeQuadrant)}` : 'Работа завершена';
+    }
+
+    function rand(min,max){
+      return Math.floor(Math.random()*(max-min+1))+min;
+    }
+
+    function openDish(){
+      lid.classList.add('open');
+      dishOpened = true;
+      mark('s1');
+      setStatus('Основная чашка открыта. <span class="ok">Теперь сначала стерилизуйте петлю.</span>');
+    }
+
+    function resetGame(){
+      dishOpened = false;
+      sterilized = false;
+      initialSampleTaken = false;
+      transferReady = false;
+      dragging = false;
+      drawing = false;
+      activeQuadrant = 1;
+      strokeCount = {1:0,2:0,3:0,4:0};
+      completed = {1:false,2:false,3:false,4:false};
+      lastPoint = null;
+      strokePaths = {1:[],2:[],3:[],4:[]};
+
+      lid.classList.remove('open');
+      loop.classList.remove('hot');
+      loop.classList.remove('loaded');
+      rod.style.left = '845px';
+      rod.style.top = '125px';
+      rod.style.transform = 'rotate(-18deg)';
+      dishMain.querySelectorAll('.stroke-segment, .colony').forEach(el => el.remove());
+      helperDot.style.display = 'none';
+      document.querySelectorAll('.steps li').forEach(li => li.classList.remove('done'));
+
+      incubatorScreen.classList.remove('show');
+      minuteHand.style.transform = 'translateX(-50%) rotate(0deg)';
+      hourHand.style.transform = 'translateX(-50%) rotate(0deg)';
+      timeLabel.textContent = '00:00';
+
+      setStatus('1) Откройте основную чашку.<br>2) Сначала стерилизуйте петлю.<br>3) Затем возьмите материал из исходной чашки.<br>4) Выполните посев в I зоне.');
+    }
+
+    rod.addEventListener('mousedown', (e) => {
+      dragging = true;
+      rod.classList.add('dragging');
+      const rect = rod.getBoundingClientRect();
+      offsetX = e.clientX - rect.left;
+      offsetY = e.clientY - rect.top;
+    });
+
+    document.addEventListener('mouseup', () => {
+      dragging = false;
+      rod.classList.remove('dragging');
+      drawing = false;
+      lastPoint = null;
+      helperDot.style.display = 'none';
+      trySterilize();
+      tryTakeInitialSample();
+      tryPrepareTransfer();
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (dragging) {
+        const stageRect = stage.getBoundingClientRect();
+        const left = e.clientX - stageRect.left - offsetX;
+        const top = e.clientY - stageRect.top - offsetY;
+
+        rod.style.left = left + 'px';
+        rod.style.top = top + 'px';
+
+        const rodX = left + 220;
+        const rodY = top + 4;
+        const loopX = left - 20;
+        const loopY = top + 2;
+
+        const angle = Math.atan2(rodY - loopY, rodX - loopX) * 180 / Math.PI;
+        rod.style.transform = `rotate(${angle}deg)`;
+      }
+
+      if (drawing) drawOnDish(e);
+    });
+
+    function trySterilize(){
+      const loopRect = loop.getBoundingClientRect();
+      const burnerRect = burner.getBoundingClientRect();
+
+      const cx = loopRect.left + loopRect.width / 2;
+      const cy = loopRect.top + loopRect.height / 2;
+
+      if (
+        cx > burnerRect.left &&
+        cx < burnerRect.right &&
+        cy > burnerRect.top &&
+        cy < burnerRect.bottom
+      ) {
+        sterilized = true;
+        loop.classList.add('hot');
+
+        if (activeQuadrant === 1 && !initialSampleTaken) {
+          mark('s2');
+          setStatus('<span class="ok">Петля стерилизована.</span> Теперь возьмите материал из исходной чашки.');
+          return;
+        }
+
+        if (activeQuadrant === 2 && !transferReady) {
+          mark('s5');
+          setStatus('<span class="ok">Петля снова стерилизована.</span> Теперь перенесите небольшое количество материала из I зоны во II.');
+          return;
+        }
+
+        if (activeQuadrant === 3 && !transferReady) {
+          mark('s7');
+          setStatus('<span class="ok">Петля снова стерилизована.</span> Теперь перенесите небольшое количество материала из II зоны в III.');
+          return;
+        }
+
+        if (activeQuadrant === 4 && !transferReady) {
+          mark('s9');
+          setStatus('<span class="ok">Петля снова стерилизована.</span> Теперь перенесите небольшое количество материала из III зоны в IV.');
+          return;
+        }
+
+        setStatus('<span class="ok">Петля стерильна.</span>');
+      }
+    }
+
+    function tryTakeInitialSample(){
+      if (activeQuadrant !== 1 || initialSampleTaken) return;
+
+      const loopRect = loop.getBoundingClientRect();
+      const sourceRect = sourceDish.getBoundingClientRect();
+
+      const cx = loopRect.left + loopRect.width / 2;
+      const cy = loopRect.top + loopRect.height / 2;
+
+      if (
+        cx > sourceRect.left &&
+        cx < sourceRect.right &&
+        cy > sourceRect.top &&
+        cy < sourceRect.bottom
+      ) {
+        if (!sterilized) {
+          setStatus('<span class="warn">Сначала стерилизуйте петлю у горелки.</span>');
+          return;
+        }
+
+        initialSampleTaken = true;
+        loop.classList.add('loaded');
+        mark('s3');
+        setStatus('<span class="ok">Материал взят из исходной чашки.</span> Теперь выполните плотный посев в I зоне.');
+      }
+    }
+
+    function tryPrepareTransfer(){
+      if (activeQuadrant < 2 || activeQuadrant > 4) return;
+      if (transferReady) return;
+
+      const loopRect = loop.getBoundingClientRect();
+      const loopCenterX = loopRect.left + loopRect.width / 2;
+      const loopCenterY = loopRect.top + loopRect.height / 2;
+
+      const prevZone = getPreviousZoneArea(activeQuadrant);
+      const stageRect = stage.getBoundingClientRect();
+
+      const zoneLeft = stageRect.left + dishMain.offsetLeft + prevZone.x1;
+      const zoneRight = stageRect.left + dishMain.offsetLeft + prevZone.x2;
+      const zoneTop = stageRect.top + dishMain.offsetTop + prevZone.y1;
+      const zoneBottom = stageRect.top + dishMain.offsetTop + prevZone.y2;
+
+      if (
+        loopCenterX >= zoneLeft &&
+        loopCenterX <= zoneRight &&
+        loopCenterY >= zoneTop &&
+        loopCenterY <= zoneBottom
+      ) {
+        if (!sterilized) {
+          setStatus('<span class="warn">Сначала снова стерилизуйте петлю.</span>');
+          return;
+        }
+
+        transferReady = true;
+        loop.classList.add('loaded');
+
+        if (activeQuadrant === 2) {
+          setStatus('<span class="ok">Небольшое количество материала перенесено из I зоны.</span> Теперь выполните штрихи во II зоне.');
+        }
+        if (activeQuadrant === 3) {
+          setStatus('<span class="ok">Небольшое количество материала перенесено из II зоны.</span> Теперь выполните штрихи в III зоне.');
+        }
+        if (activeQuadrant === 4) {
+          setStatus('<span class="ok">Небольшое количество материала перенесено из III зоны.</span> Теперь выполните штрихи в IV зоне.');
+        }
+      }
+    }
+
+    function getZoneArea(q){
+      const w = 500, h = 500;
+      if (q === 1) return {x1:20, y1:20, x2:w/2 - 10, y2:h/2 - 10}; // top-left
+      if (q === 2) return {x1:w/2 + 10, y1:20, x2:w - 20, y2:h/2 - 10}; // top-right
+      if (q === 3) return {x1:w/2 + 10, y1:h/2 + 10, x2:w - 20, y2:h - 20}; // bottom-right
+      return {x1:20, y1:h/2 + 10, x2:w/2 - 10, y2:h - 20}; // bottom-left
+    }
+
+    function getPreviousZoneArea(q){
+      if (q === 2) return getZoneArea(1);
+      if (q === 3) return getZoneArea(2);
+      if (q === 4) return getZoneArea(3);
+      return getZoneArea(1);
+    }
+
+    dishMain.addEventListener('mousedown', (e) => {
+      if (!dishOpened) {
+        setStatus('<span class="warn">Сначала откройте основную чашку.</span>');
+        return;
+      }
+
+      if (activeQuadrant === 1) {
+        if (!sterilized) {
+          setStatus('<span class="warn">Сначала стерилизуйте петлю.</span>');
+          return;
+        }
+        if (!initialSampleTaken) {
+          setStatus('<span class="warn">Сначала возьмите материал из исходной чашки.</span>');
+          return;
+        }
+      } else {
+        if (!sterilized) {
+          setStatus('<span class="warn">Сначала снова стерилизуйте петлю.</span>');
+          return;
+        }
+        if (!transferReady) {
+          setStatus('<span class="warn">Сначала перенесите небольшое количество материала из предыдущей зоны.</span>');
+          return;
+        }
+      }
+
+      const q = getQuadrant(e);
+      if (q !== activeQuadrant) {
+        setStatus('<span class="warn">Сейчас нужно работать в зоне ' + zoneLabel(activeQuadrant) + '.</span>');
+        return;
+      }
+
+      drawing = true;
+      helperDot.style.display = 'block';
+      drawOnDish(e);
+    });
+
+    function getQuadrant(e){
+      const rect = dishMain.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const cx = rect.width / 2;
+      const cy = rect.height / 2;
+
+      if (x < cx && y < cy) return 1;
+      if (x >= cx && y < cy) return 2;
+      if (x >= cx && y >= cy) return 3;
+      return 4;
+    }
+
+    function drawOnDish(e){
+      const rect = dishMain.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      const q = getQuadrant(e);
+      if (q !== activeQuadrant) return;
+
+      const stageRect = stage.getBoundingClientRect();
+      helperDot.style.left = (e.clientX - stageRect.left - 7) + 'px';
+      helperDot.style.top = (e.clientY - stageRect.top - 7) + 'px';
+
+      if (!lastPoint) {
+        lastPoint = {x, y};
+        return;
+      }
+
+      const dx = x - lastPoint.x;
+      const dy = y - lastPoint.y;
+      const dist = Math.hypot(dx, dy);
+
+      if (dist < 4) return;
+
+      const seg = document.createElement('div');
+      seg.className = 'stroke-segment';
+
+      const zoneWidth = q === 1 ? 6 : q === 2 ? 5 : q === 3 ? 4.5 : 4;
+      const zoneOpacity = q === 1 ? 0.95 : q === 2 ? 0.88 : q === 3 ? 0.8 : 0.72;
+
+      seg.style.height = zoneWidth + 'px';
+      seg.style.opacity = zoneOpacity;
+      seg.style.width = dist + 'px';
+      seg.style.left = lastPoint.x + 'px';
+      seg.style.top = (lastPoint.y - zoneWidth / 2) + 'px';
+      seg.style.transform = `rotate(${Math.atan2(dy, dx)}rad)`;
+
+      dishMain.appendChild(seg);
+      strokePaths[q].push({
+        x: lastPoint.x,
+        y: lastPoint.y,
+        length: dist,
+        angle: Math.atan2(dy, dx)
+      });
+
+      lastPoint = {x, y};
+      strokeCount[q]++;
+
+      if (!completed[q] && strokeCount[q] > neededStrokes(q)) {
+        completeQuadrant(q);
+      }
+    }
+
+    function neededStrokes(q){
+      if(q===1) return 120;
+      if(q===2) return 100;
+      if(q===3) return 82;
+      return 62;
+    }
+
+    function completeQuadrant(q){
+      completed[q] = true;
+      sterilized = false;
+      transferReady = false;
+      loop.classList.remove('hot');
+      loop.classList.remove('loaded');
+
+      if (q === 1) {
+        mark('s4');
+        setStatus('<span class="ok">I зона завершена.</span> Теперь снова стерилизуйте петлю, затем перенесите материал из I зоны во II.');
+      }
+
+      if (q === 2) {
+        mark('s6');
+        setStatus('<span class="ok">II зона завершена.</span> Теперь снова стерилизуйте петлю, затем перенесите материал из II зоны в III.');
+      }
+
+      if (q === 3) {
+        mark('s8');
+        setStatus('<span class="ok">III зона завершена.</span> Теперь снова стерилизуйте петлю, затем перенесите материал из III зоны в IV.');
+      }
+
+      if (q === 4) {
+        mark('s10');
+        setStatus('<span class="ok">Посев завершён.</span> Чашка отправляется в инкубатор...');
+        activeQuadrant = 5;
+        badge.textContent = 'Инкубация...';
+
+        setTimeout(() => {
+          mark('s11');
+          runIncubationAnimation(() => {
+            addColoniesAfterIncubation();
+            mark('s12');
+            setStatus('<span class="ok">Инкубация завершена.</span> В I–III зонах видны набухшие жёлтые линии роста по штрихам, в IV зоне сформировались отдельные гранулы. <br><span class="ok">Заключение:</span> материал берём из IV зоны, готовим мазок, окрашиваем и смотрим под микроскопом.');
+            badge.textContent = 'Результат готов';
+          });
+        }, 700);
+
+        return;
+      }
+
+      activeQuadrant++;
+      badge.textContent = `Текущая зона: ${zoneLabel(activeQuadrant)}`;
+    }
+
+    function addColoniesAfterIncubation(){
+      revealGrowthByPath(1, 0);
+      setTimeout(() => revealGrowthByPath(2, 120), 400);
+      setTimeout(() => revealGrowthByPath(3, 260), 850);
+      setTimeout(() => addGranulesInZone4(), 1400);
+    }
+
+    function revealGrowthByPath(q, startDelay = 0){
+      const path = strokePaths[q];
+      if (!path || !path.length) return;
+
+      setTimeout(() => {
+        const step = Math.max(1, Math.floor(path.length / (q === 1 ? 48 : q === 2 ? 42 : 36)));
+        let visibleIndex = 0;
+
+        const timer = setInterval(() => {
+          if (visibleIndex >= path.length) {
+            clearInterval(timer);
+            return;
+          }
+
+          const p = path[visibleIndex];
+          const g = document.createElement('div');
+          g.className = 'growth-line';
+
+          const growthWidth = q === 1 ? 12 : q === 2 ? 11 : 10;
+          const growthLength = p.length + (q === 1 ? 8 : q === 2 ? 6 : 4);
+
+          g.style.height = growthWidth + 'px';
+          g.style.width = growthLength + 'px';
+          g.style.left = p.x + 'px';
+          g.style.top = (p.y - growthWidth / 2) + 'px';
+          g.style.transform = `rotate(${p.angle}rad) scaleX(.75)`;
+
+          dishMain.appendChild(g);
+
+          requestAnimationFrame(() => {
+            g.style.opacity = '0.94';
+            g.style.transform = `rotate(${p.angle}rad) scaleX(1)`;
+          });
+
+          visibleIndex += step;
+        }, Math.max(45, 90 - q * 12));
+      }, startDelay);
+    }
+
+    function addGranulesInZone4(){
+      const area = getZoneArea(4);
+      const path = strokePaths[4] || [];
+      const points = [];
+
+      for (let i = 0; i < path.length; i += Math.max(1, Math.floor(path.length / 22) || 1)) {
+        const p = path[i];
+        points.push({
+          x: p.x + Math.cos(p.angle) * (p.length * 0.55),
+          y: p.y + Math.sin(p.angle) * (p.length * 0.55)
+        });
+      }
+
+      if (!points.length) {
+        for (let i = 0; i < 18; i++) {
+          points.push({
+            x: rand(area.x1 + 12, area.x2 - 12),
+            y: rand(area.y1 + 12, area.y2 - 12)
+          });
+        }
+      }
+
+      let i = 0;
+      const timer = setInterval(() => {
+        if (i >= points.length) {
+          clearInterval(timer);
+          return;
+        }
+
+        const c = document.createElement('div');
+        c.className = 'colony';
+
+        const s = rand(10, 16);
+        c.style.width = s + 'px';
+        c.style.height = s + 'px';
+        c.style.left = (points[i].x - s / 2) + 'px';
+        c.style.top = (points[i].y - s / 2) + 'px';
+        c.style.background = 'radial-gradient(circle at 35% 35%, rgba(255,248,205,.98), rgba(235,214,138,.96) 58%, rgba(199,174,90,.94) 100%)';
+
+        dishMain.appendChild(c);
+
+        requestAnimationFrame(() => {
+          c.style.opacity = '0.98';
+          c.style.transform = 'scale(1)';
+        });
+
+        i++;
+      }, 130);
+    }
+
+    function runIncubationAnimation(callback){
+      incubatorScreen.classList.add('show');
+
+      let progress = 0;
+      const totalSteps = 80;
+
+      const timer = setInterval(() => {
+        progress++;
+
+        const minuteAngle = (progress / totalSteps) * 360 * 2;
+        const hourAngle = (progress / totalSteps) * 360;
+
+        minuteHand.style.transform = `translateX(-50%) rotate(${minuteAngle}deg)`;
+        hourHand.style.transform = `translateX(-50%) rotate(${hourAngle}deg)`;
+
+        const fakeHours = Math.floor((progress / totalSteps) * 24);
+        const fakeMinutes = Math.floor((((progress / totalSteps) * 24) - fakeHours) * 60);
+
+        const hh = String(fakeHours).padStart(2, '0');
+        const mm = String(fakeMinutes).padStart(2, '0');
+        timeLabel.textContent = `${hh}:${mm}`;
+
+        if(progress >= totalSteps){
+          clearInterval(timer);
+
+          setTimeout(() => {
+            incubatorScreen.classList.remove('show');
+            if(callback) callback();
+          }, 900);
+        }
+      }, 45);
+    }
+
+    resetGame();
+  </script>
+</body>
+</html>
